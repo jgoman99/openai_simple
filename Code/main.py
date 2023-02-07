@@ -20,17 +20,19 @@ with open("../Keys/openai_key.txt","r") as f:
     openai.api_key = f.read()
 
 # default vars
-default_embedding_cache_path = "embeddings_cache.jsonl"
+
 
 # caching
 # cache to jsonl
 # load cache
 class Embedding_Cache:
-    def __init__(self):
+    def __init__(self, embedding_cache_path = "embeddings_cache.jsonl"):
+        self.embedding_cache_path = Path(embedding_cache_path)
         self.cache = self.load_embedding_cache()
 
+
     def load_embedding_cache(self):
-        embedding_cache_path = Path(default_embedding_cache_path)
+        embedding_cache_path = self.embedding_cache_path
         if embedding_cache_path.exists():
             with open(embedding_cache_path, 'r') as json_file:
                 json_list = list(json_file)
@@ -48,7 +50,7 @@ class Embedding_Cache:
     
     def add_to_cache(self,embedding_dict):
         # writes to file
-        with open(default_embedding_cache_path,'a') as f:
+        with open(self.embedding_cache_path,'a') as f:
             f.write(json.dumps(embedding_dict) + "\n")
             
         # adds to cache in memory
