@@ -142,11 +142,8 @@ def zero_shot_classification(text_list : [str],labels : [str, str], engine="text
     text_list.extend(labels)
     text_df = embed_string_list(text_list)
     
-    labels_df = text_df.iloc[-2:]
-    to_label_df = text_df.iloc[0:-2]
-    
-    string_embeddings = to_label_df['vector']
-    label_embeddings = to_label_df['vector']
+    string_embeddings = text_df['vector'].iloc[0:-2].tolist()
+    label_embeddings = text_df['vector'].iloc[-2:].tolist()
     
     probas = [__label_score(item,label_embeddings) for item in string_embeddings]
     dict_list = []
