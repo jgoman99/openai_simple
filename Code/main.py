@@ -88,7 +88,7 @@ def embed_string_list(text_list : [str], engine="text-embedding-ada-002") -> []:
     # check if text is already in cache
     # can optimize caching later
     if type(text_list) != list:
-        raise ValueError("text list must be a list")
+        raise TypeError("text list must be a list")
     text_df = pd.DataFrame({'text':text_list})
     
     cache_df = cache.get_cache_as_df()
@@ -121,7 +121,45 @@ def cosine_similarity(a,b):
     cos_sim = dot(a, b)/(norm(a)*norm(b))
     return(cos_sim)
 
+def __label_score(embeddings, label_embeddings):
+    return cosine_similarity(embeddings, label_embeddings[1]) - cosine_similarity(embeddings, label_embeddings[0])
+
 # zero shot classification
+def zero_shot_classification(text_list : [str],labels : [str, str], engine="text-embedding-ada-002"):
+    # check for correct types
+    if type(text_list) != list:
+        raise TypeError("text_list must be a list")
+    
+    if type(labels) != list:
+        raise TypeError("labels must be a list")
+
+    if len(labels) != 2:
+        raise ValueError("labels must be of length 2")
+
+    # combine items in list to avoid caching twice
+    text_list.extend(labels)
+    text_df = embed_string_list(text_list)
+    
+    labels_df = text_df.iloc[-2:]
+    to_label_df = text_df.iloc[0:-2]
+    
+    string_embeddings = to_label_df['vector']
+    label_embeddings = to_label_df['vector']
+    
+    probas = [__label_score(item,label_embeddings) for item in string_embeddings]
+    dict_list = []
+    for idx, prob in enumerate(probas):
+        if prob > 0:
+            d = {'text':text_list[idx],'label':labels[1],'score':prob}
+        else:
+            d = {'text':text_list[idx],'label':labels[0],'score':prob}
+        dict_list.append(d)
+    return(dict_list)
+        
+        
+
+
+
 
 
 
